@@ -63,14 +63,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
           throw new Error("Primero tenés que subir un PDF.");
         }
 
-        res = await fetch(`${import.meta.env.VITE_BACKEND_PDF}/api/ask-pdf`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/ask-pdf`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ docId, question: inputValue })
         });
 
       } else if (agentId === 'agent-bd') {
-        res = await fetch(`${import.meta.env.VITE_BACKEND_DB}/api/ask-db`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/ask-db`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: inputValue })
@@ -80,7 +80,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
         if (!docId) throw new Error("Primero tenés que subir un PDF de reglas.");
         if (!dbConnected) throw new Error("Primero tenés que conectarte a la base de datos.");
 
-        res = await fetch(`${import.meta.env.VITE_BACKEND_AUDITOR}/api/audit/audit`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/audit/audit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -90,7 +90,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
         });
 
       } else if (agentId === 'agent-websearch') {
-        res = await fetch(`${import.meta.env.VITE_BACKEND_WEBSEARCH}/api/ask-websearch`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/ask-websearch`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: inputValue })
@@ -131,8 +131,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
     const handleDbConnect = async () => {
       setShowDbForm(false);
       try {
-        // Usa el endpoint correcto para conectar a la base de datos del auditor
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_AUDITOR}/api/audit/connect-db`, {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/audit/connect-db`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -185,8 +184,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
       try {
         let res, data;
         if (agentId === 'agent-expensesauditor') {
-          // Sube el PDF de reglas al backend de auditoría
-          res = await fetch(`${import.meta.env.VITE_BACKEND_AUDITOR}/api/audit/upload-rules`, {
+          res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/audit/upload-rules`, {
             method: "POST",
             body: formData
           });
@@ -206,8 +204,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
             throw new Error(data.error || "Error desconocido al subir PDF de reglas");
           }
         } else {
-          // ...existing code for agent-documents...
-          res = await fetch(`${import.meta.env.VITE_BACKEND_PDF}/api/upload-pdf`, {
+          res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/upload-pdf`, {
             method: "POST",
             body: formData
           });
