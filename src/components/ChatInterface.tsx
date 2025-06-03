@@ -63,7 +63,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
           throw new Error("Primero tenés que subir un PDF.");
         }
 
-        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/ask-pdf`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/pdf/ask-pdf`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ docId, question: inputValue })
@@ -90,7 +90,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
         });
 
       } else if (agentId === 'agent-websearch') {
-        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/ask-websearch`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/web/ask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: inputValue })
