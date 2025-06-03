@@ -122,11 +122,11 @@ const Navbar: React.FC = () => {
 
   // Lista de backgrounds (puedes agregar url de imagen en el futuro)
  const backgrounds = [
-  { name: 'Page 1', img: Pagina1 },
-  { name: 'Page 2', img: Pagina2 },
-  { name: 'Page 3', img: Pagina3 },
-  { name: 'Page 4', img: Pagina4 },
-  { name: 'Page 5', img: Pagina5 }
+  { name: 'Architecture Components', img: Pagina1 },
+  { name: 'Architecture Process', img: Pagina2 },
+  { name: 'Unio', img: Pagina3 },
+  { name: 'Oracle Main', img: Pagina4 },
+  { name: 'Oracle Report', img: Pagina5 }
 ];
 
 
