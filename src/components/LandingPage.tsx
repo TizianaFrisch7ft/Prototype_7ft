@@ -1,7 +1,15 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
+import { useBackground } from './BackgroundContext'; // asegurate de tenerlo bien importado
 
 const LandingPage: React.FC = () => {
+  const { selectedBackground } = useBackground();
+
+  // 👉 Oculta todo el contenido si cualquier fondo fue seleccionado
+  const hideLanding = selectedBackground.name !== 'Original';
+
+  if (hideLanding) return null;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
       <div className="text-center mb-24">
@@ -55,12 +63,12 @@ const LandingPage: React.FC = () => {
             Start exploring our intelligent agents and discover how they can elevate your workflows
             and boost your business efficiency.
           </p>
-         <button
-                className="btn btn-primary flex items-center gap-2 mx-auto"
-                onClick={() => window.location.href = 'https://7ftservices.com/'}
-              >
-                Get started <ArrowRight className="w-4 h-4" />
-        </button>
+          <button
+            className="btn btn-primary flex items-center gap-2 mx-auto"
+            onClick={() => window.location.href = 'https://7ftservices.com/'}
+          >
+            Get started <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>

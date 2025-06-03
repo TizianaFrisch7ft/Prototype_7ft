@@ -18,8 +18,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
   const [inputValue, setInputValue] = useState('');
   const [showDbForm, setShowDbForm] = useState(false);
   const [dbType, setDbType] = useState('');
-  const [dbUser, setDbUser] = useState('');
-  const [dbPassword, setDbPassword] = useState('');
+  const [dbUser, setDbUser] = useState('tizianafrisch');
+  const [dbPassword, setDbPassword] = useState('tizi7ft');
   const [dbConnected, setDbConnected] = useState(false);
   const [cluster, setCluster] = useState('cluster0.deduats.mongodb.net');
   const [dbName, setDbName] = useState('agent_mongo');
@@ -275,51 +275,54 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
         <div className="border-t border-neutral-200 p-4 bg-white">
           <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-2">
             {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor') && showDbForm && (
-              <div className="flex gap-2 items-center bg-neutral-100 p-3 rounded-lg">
-                <select
-                  className="border border-neutral-300 rounded px-2 py-1"
-                  value={dbType}
-                  onChange={e => setDbType(e.target.value)}
-                >
-                  <option value="" disabled>Choose DB</option>
-                  <option value="mongodb">MongoDB</option>
-                  <option value="postgres">PostgreSQL</option>
-                  <option value="mysql">MySQL</option>
-                  <option value="sqlite">SQLite</option>
-                  <option value="azure">Azure SQL</option>
-                </select>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 bg-neutral-100 p-4 rounded-xl border border-neutral-200 shadow-sm">
+                {agentId === 'agent-bd' && (
+                  <select
+                    className="border border-neutral-300 rounded px-3 py-2 w-full"
+                    value={dbType}
+                    onChange={e => setDbType(e.target.value)}
+                  >
+                    <option value="" disabled>Choose DB</option>
+                    <option value="mongodb">MongoDB</option>
+                    <option value="postgres">PostgreSQL</option>
+                    <option value="mysql">MySQL</option>
+                    <option value="sqlite">SQLite</option>
+                    <option value="azure">Azure SQL</option>
+                  </select>
+                )}
+
                 <input
                   type="text"
                   placeholder="User"
-                  className="border border-neutral-300 rounded px-2 py-1"
+                  className="border border-neutral-300 rounded px-3 py-2 w-full"
                   value={dbUser}
                   onChange={e => setDbUser(e.target.value)}
                 />
                 <input
                   type="password"
                   placeholder="Password"
-                  className="border border-neutral-300 rounded px-2 py-1"
+                  className="border border-neutral-300 rounded px-3 py-2 w-full"
                   value={dbPassword}
                   onChange={e => setDbPassword(e.target.value)}
                 />
                 <input
                   type="text"
-                  placeholder="Cluster (e.g. cluster0.deduats.mongodb.net)"
-                  className="border border-neutral-300 rounded px-2 py-1"
+                  placeholder="Cluster (e.g. cluster0.mongodb.net)"
+                  className="border border-neutral-300 rounded px-3 py-2 w-full"
                   value={cluster}
                   onChange={e => setCluster(e.target.value)}
                 />
                 <input
                   type="text"
-                  placeholder="DB Name (e.g. agent_mongo)"
-                  className="border border-neutral-300 rounded px-2 py-1"
+                  placeholder="DB Name"
+                  className="border border-neutral-300 rounded px-3 py-2 w-full"
                   value={dbName}
                   onChange={e => setDbName(e.target.value)}
                 />
 
                 <button
                   type="button"
-                  className="bg-primary-600 text-white px-3 py-1 rounded hover:bg-primary-700"
+                  className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 w-full"
                   onClick={handleDbConnect}
                 >
                   Connect
