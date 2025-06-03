@@ -137,16 +137,30 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
     const handleDbConnect = async () => {
       setShowDbForm(false);
       try {
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/audit/connect-db`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            dbUser,
-            dbPassword,
-            dbName,
-            cluster
-          })
-        });
+        let res;
+        if (agentId === 'agent-bd') {
+          res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/mongo/connect-db`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              dbUser,
+              dbPassword,
+              dbName,
+              cluster
+            })
+          });
+        } else {
+          res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/audit/connect-db`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              dbUser,
+              dbPassword,
+              dbName,
+              cluster
+            })
+          });
+        }
 
         if (!res.ok) {
           const errorText = await res.text();
