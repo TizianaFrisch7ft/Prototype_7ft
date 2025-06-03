@@ -17,7 +17,7 @@ export const agents: AgentType[] = [
   },
   {
     id: 'agent-vectorize',
-    name: 'Agent-Vectorize',
+    name: 'Agent-RAG',
     description: 'Advanced vector processing for complex data representation',
     icon: 'Layers',
     color: '#059669'
@@ -28,15 +28,14 @@ export const agents: AgentType[] = [
     description: 'Intelligent web search capabilities for information retrieval',
     icon: 'Search',
     color: '#047857'
-  },
-
- { id: 'agent-expensesauditor',
+  }, 
+  {
+    id: 'agent-expensesauditor',
     name: 'Agent-ExpenseAuditor',
     description: 'Expense auditing and financial data analysis',
     icon: 'Brain',
     color: '#047857'
-  }
-
+ }
 ];
 
 export const getAgentById = (id: string): AgentType | undefined => {

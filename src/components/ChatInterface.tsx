@@ -70,7 +70,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
         });
 
       } else if (agentId === 'agent-bd') {
-        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/ask-db`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/mongo/ask-db`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: inputValue })
@@ -91,6 +91,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
 
       } else if (agentId === 'agent-websearch') {
         res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/web/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: inputValue })
+        });
+      } else if (agentId === 'agent-vectorize') {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/vector/ask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: inputValue })
@@ -204,7 +210,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
             throw new Error(data.error || "Error desconocido al subir PDF de reglas");
           }
         } else {
-          res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/upload-pdf`, {
+          res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/pdf/upload-pdf`, {
             method: "POST",
             body: formData
           });
