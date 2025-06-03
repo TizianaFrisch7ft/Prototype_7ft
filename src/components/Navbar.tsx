@@ -25,6 +25,22 @@ const Navbar: React.FC = () => {
     setSelectedAgent(agentPath ? agentPath[1] : null);
   }, [location]);
 
+  // Cierra el menú de agente si haces click fuera
+  useEffect(() => {
+    if (openMenuAgentId) {
+      const handleClick = (e: MouseEvent) => {
+        // Si el click no es dentro de un menú de agente, ciérralo
+        const menu = document.querySelector('.agent-menu-open');
+        if (menu && !menu.contains(e.target as Node)) {
+          setOpenMenuAgentId(null);
+          setShowArchAgentId(null);
+        }
+      };
+      document.addEventListener('mousedown', handleClick);
+      return () => document.removeEventListener('mousedown', handleClick);
+    }
+  }, [openMenuAgentId]);
+
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case 'Database':
@@ -71,7 +87,7 @@ const Navbar: React.FC = () => {
     if (openMenuAgentId === agentId && showArchAgentId === agentId) {
       return (
         <div
-          className="absolute right-0 top-7 z-50 bg-white border rounded shadow-lg p-3 min-w-[180px] text-xs"
+          className="absolute right-0 top-7 z-50 bg-white border rounded shadow-lg p-3 min-w-[180px] text-xs agent-menu-open"
           style={{ minWidth: 180 }}
           onClick={e => e.stopPropagation()}
         >
@@ -93,12 +109,10 @@ const Navbar: React.FC = () => {
         </div>
       );
     }
-
-    // Menú principal solo si no está mostrando arquitectura
     if (openMenuAgentId === agentId && showArchAgentId == null) {
       return (
         <div
-          className="absolute right-0 top-7 z-50 bg-white border rounded shadow-md text-xs min-w-[120px] py-1"
+          className="absolute right-0 top-7 z-50 bg-white border rounded shadow-md text-xs min-w-[120px] py-1 agent-menu-open"
           style={{ minWidth: 120 }}
           onClick={e => e.stopPropagation()}
         >
@@ -116,7 +130,6 @@ const Navbar: React.FC = () => {
         </div>
       );
     }
-
     return null;
   };
 
@@ -238,7 +251,8 @@ const Navbar: React.FC = () => {
               { id: 'agent-insurance', name: 'Agent - Insurance', icon: 'Layers', color: '#4ade80' },        // green-400
               { id: 'agent-customerservice', name: 'Agent - Customer Service', icon: 'Search', color: '#10b981' }, // emerald-500
               { id: 'agent-sales', name: 'Agent - Sales', icon: 'Brain', color: '#059669' },                 // emerald-700
-              { id: 'agent-procurement', name: 'Agent - Procurement', icon: 'Layers', color: '#65a30d' }     // lime-600
+              { id: 'agent-procurement', name: 'Agent - Procurement', icon: 'Layers', color: '#65a30d' },    // lime-600
+              { id: 'agent-eam', name: 'Agent - EAM', icon: 'Database', color: '#16a34a' }                   // sky-500
             ].map(agent => (
               <div key={agent.id} className="relative">
                 <NavLink 
