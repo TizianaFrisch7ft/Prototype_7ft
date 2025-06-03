@@ -139,7 +139,7 @@ const Navbar: React.FC = () => {
     const isAgentChat = /^\/agent\//.test(location.pathname);
     if (!isAgentChat && (selectedBackground.img || selectedBackground.color)) {
       document.body.style.background = selectedBackground.img
-        ? `url(${selectedBackground.img ?? ''}) 75% center / 65% auto no-repeat`
+        ? `url(${selectedBackground.img ?? ''}) 75% center / 76% auto no-repeat`
         : (selectedBackground.color ?? '');
     } else {
       document.body.style.background = '#fff';
