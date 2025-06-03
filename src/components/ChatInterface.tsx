@@ -143,6 +143,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              dbType,
               dbUser,
               dbPassword,
               dbName,
