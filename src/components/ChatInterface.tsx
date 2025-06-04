@@ -265,12 +265,15 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
 
   return (
     <div
+      // Cambia maxWidth y height para que nunca sea "grande"
       className="fixed bottom-6 z-50 shadow-2xl bg-white border border-neutral-200 flex flex-col rounded-2xl"
       style={{
         width: '420px',
         maxWidth: '98vw',
         height: '520px',
         maxHeight: '90vh',
+        minWidth: '320px',
+        minHeight: '320px',
         boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
         right: 24,
         ...style

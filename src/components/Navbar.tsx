@@ -10,6 +10,7 @@ import Pagina2 from '../images/Pagina2.png';
 import Pagina3 from '../images/Pagina3.png';
  import Pagina4 from '../images/Pagina4.png';
  import Pagina5 from '../images/Pagina5.png';
+ import amplimas from '../images/aplimas.jpeg';
 import ChatInterface from './ChatInterface';
 
 const Navbar: React.FC = () => {
@@ -150,7 +151,8 @@ const Navbar: React.FC = () => {
   { name: 'Architecture Process', img: Pagina2 },
   { name: 'Unio', img: Pagina3 },
   { name: 'Oracle Main', img: Pagina4 },
-  { name: 'Oracle Report', img: Pagina5 }
+  { name: 'Oracle Report', img: Pagina5 },
+  {name: 'Aplimas', img: amplimas},
 ];
 
 
