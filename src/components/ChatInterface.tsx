@@ -22,7 +22,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agentId }) => {
   const [dbPassword, setDbPassword] = useState('tizi7ft');
   const [dbConnected, setDbConnected] = useState(false);
   const [cluster, setCluster] = useState('cluster0.deduats.mongodb.net');
-  const [dbName, setDbName] = useState('agent_mongo');
+  const [dbName, setDbName] = useState(agentId === 'agent-expensesauditor' ? 'expenses' : 'agent_mongo');
   const [docId, setDocId] = useState<string | null>(null); // será rulesId para auditor
   const [sources, setSources] = useState<string[]>([]);
   const [showSources, setShowSources] = useState(false);
