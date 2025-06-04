@@ -424,14 +424,16 @@ const Navbar: React.FC = () => {
         )}
       </div>
     </nav>
-    {/* 5. Renderiza todos los chats abiertos */}
+    {/* Renderiza todos los chats abiertos, apilados hacia la izquierda */}
     {openChats.filter(c => c.open).map(({ agentId }, idx) => (
       <ChatInterface
         key={agentId}
         agentId={agentId}
         open={true}
         onClose={() => handleCloseChat(agentId)}
-        style={{ right: 24 + idx * 390 }} // Opcional: apila los chats
+        style={{
+          right: 24 + idx * 440 // 420px ancho + 20px separación
+        }}
       />
     ))}
     </>
