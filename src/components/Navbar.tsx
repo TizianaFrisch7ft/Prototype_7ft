@@ -10,6 +10,7 @@ import Pagina2 from '../images/Pagina2.png';
 import Pagina3 from '../images/Pagina3.png';
  import Pagina4 from '../images/Pagina4.png';
  import Pagina5 from '../images/Pagina5.png';
+import ChatInterface from './ChatInterface';
 
 const Navbar: React.FC = () => {
   const [currentCompany, setCurrentCompany] = useState<Company>(defaultCompany);
@@ -18,6 +19,7 @@ const Navbar: React.FC = () => {
   const [openMenuAgentId, setOpenMenuAgentId] = useState<string | null>(null);
   const [showArchAgentId, setShowArchAgentId] = useState<string | null>(null);
   const [showBackgroundMenu, setShowBackgroundMenu] = useState(false);
+  const [openChats, setOpenChats] = useState<{ agentId: string, open: boolean }[]>([]);
   const location = useLocation();
 
   useEffect(() => {
@@ -126,7 +128,16 @@ const Navbar: React.FC = () => {
           >
             Architecture
           </button>
-          <button className="block w-full text-left px-4 py-1 hover:bg-neutral-100">Deploy</button>
+          <button
+            className="block w-full text-left px-4 py-1 hover:bg-neutral-100"
+            onClick={e => {
+              e.stopPropagation();
+              handleOpenChat(agentId);
+              setOpenMenuAgentId(null);
+            }}
+          >
+            Deploy
+          </button>
         </div>
       );
     }
@@ -162,7 +173,21 @@ const Navbar: React.FC = () => {
     };
   }, [selectedBackground, location.pathname]);
 
+  // 3. Funciones para abrir/cerrar chats
+  const handleOpenChat = (agentId: string) => {
+    setOpenChats(prev => {
+      if (prev.some(c => c.agentId === agentId)) {
+        return prev.map(c => c.agentId === agentId ? { ...c, open: true } : c);
+      }
+      return [...prev, { agentId, open: true }];
+    });
+  };
+  const handleCloseChat = (agentId: string) => {
+    setOpenChats(prev => prev.map(c => c.agentId === agentId ? { ...c, open: false } : c));
+  };
+
   return (
+    <>
     <nav className="w-72 h-screen bg-white border-r border-neutral-200 flex flex-col">
       <div className="p-4 border-b border-neutral-200">
         <NavLink
@@ -399,6 +424,17 @@ const Navbar: React.FC = () => {
         )}
       </div>
     </nav>
+    {/* 5. Renderiza todos los chats abiertos */}
+    {openChats.filter(c => c.open).map(({ agentId }, idx) => (
+      <ChatInterface
+        key={agentId}
+        agentId={agentId}
+        open={true}
+        onClose={() => handleCloseChat(agentId)}
+        style={{ right: 24 + idx * 390 }} // Opcional: apila los chats
+      />
+    ))}
+    </>
   );
 };
 
