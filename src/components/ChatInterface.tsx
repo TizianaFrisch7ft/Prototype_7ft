@@ -520,7 +520,8 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
           {agentId === 'agent-web' && showUrlInput && (
             <div className="absolute bottom-28 right-0 left-0 mx-auto w-[90%] max-w-[380px] z-50 bg-white border border-primary-200 rounded-xl shadow-lg p-4 flex flex-col gap-2">
               <label className="text-xs font-semibold text-primary-700 mb-1">Cargar URL para analizar</label>
-              <form onSubmit={handleSendUrl} className="flex gap-2">
+              {/* Cambia el form por un div y usa un button para evitar submit del form principal */}
+              <div className="flex gap-2">
                 <input
                   type="text"
                   value={urlValue}
@@ -530,14 +531,15 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                   autoFocus
                 />
                 <button
-                  type="submit"
+                  type="button"
                   className="p-2 rounded-full bg-primary-600 text-white hover:bg-primary-700 transition-colors"
                   disabled={!urlValue.trim()}
                   title="Enviar URL"
+                  onClick={handleSendUrl}
                 >
                   <Send className="w-4 h-4" color="white" />
                 </button>
-              </form>
+              </div>
               <button
                 type="button"
                 className="text-xs text-neutral-500 hover:underline mt-1 self-end"
