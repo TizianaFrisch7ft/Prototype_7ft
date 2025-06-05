@@ -74,7 +74,8 @@ const Navbar: React.FC = () => {
     'agent-bd',
     'agent-documents',
     'agent-vectorize',
-    'agent-websearch'
+    'agent-websearch',
+    'agent-web' // <-- nuevo agente funcional
   ];
 
   const architectures: Record<string, string[]> = {

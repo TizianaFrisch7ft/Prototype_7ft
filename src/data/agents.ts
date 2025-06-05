@@ -35,7 +35,14 @@ export const agents: AgentType[] = [
     description: 'Expense auditing and financial data analysis',
     icon: 'Brain',
     color: '#047857'
- }
+ },
+ {
+    id: 'agent-web',
+    name: 'Agent-web',
+    description: 'Web automation and scraping agent',
+    icon: 'Search',
+    color: '#0ea5e9'
+  }
 ];
 
 export const getAgentById = (id: string): AgentType | undefined => {

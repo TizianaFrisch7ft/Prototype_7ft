@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage as ChatMessageType } from '../types';
 import ChatMessage from './ChatMessage';
-import { Send, Database, Upload } from 'lucide-react';
+import { Send, Database, Upload, Link as LinkIcon } from 'lucide-react';
 
 interface ChatInterfaceProps {
   agentId: string;
@@ -28,6 +28,8 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
   const [docId, setDocId] = useState<string | null>(null); // será rulesId para auditor
   const [sources, setSources] = useState<string[]>([]);
   const [showSources, setShowSources] = useState(false);
+  const [urlValue, setUrlValue] = useState('');
+  const [showUrlInput, setShowUrlInput] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,18 +46,27 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
     setInputValue(e.target.value);
   };
 
+  // Nuevo: para el input de URL
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUrlValue(e.target.value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() === '') return;
+    if (agentId === 'agent-web' && urlValue.trim() === '') return;
 
     const userMessage: ChatMessageType = {
       id: Date.now().toString(),
-      content: inputValue,
+      content: agentId === 'agent-web'
+        ? `URL: ${urlValue}\nPregunta: ${inputValue}`
+        : inputValue,
       isUser: true,
       timestamp: new Date()
     };
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
+    if (agentId === 'agent-web') setUrlValue('');
 
     try {
       let res;
@@ -102,6 +113,13 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: inputValue })
+        });
+      } else if (agentId === 'agent-web') {
+        // Usa el endpoint /api/web/ask según tu backend
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/web/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: urlValue, question: inputValue })
         });
       } else {
         throw new Error("Agente desconocido.");
@@ -433,6 +451,31 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                 )}
               </div>
             )}
+            {/* Input extra para agent-web */}
+            {agentId === 'agent-web' && (
+              <>
+                <button
+                  type="button"
+                  className={`p-2 rounded-full hover:bg-neutral-200 transition-colors ${showUrlInput ? 'bg-primary-100' : ''}`}
+                  onClick={() => setShowUrlInput(v => !v)}
+                  title="Cargar URL"
+                  tabIndex={-1}
+                >
+                  <LinkIcon className="w-5 h-5 text-primary-700" />
+                </button>
+                {showUrlInput && (
+                  <input
+                    type="text"
+                    value={urlValue}
+                    onChange={handleUrlChange}
+                    placeholder="Ingrese la URL (ej: https://...)"
+                    className="input-field flex-1"
+                    required
+                    autoFocus
+                  />
+                )}
+              </>
+            )}
             <input
               type="text"
               value={inputValue}
@@ -447,7 +490,12 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
             <button
               type="submit"
               className="p-2 rounded-full bg-primary-600 text-white hover:bg-primary-700 transition-colors"
-              disabled={inputValue.trim() === '' || (agentId === 'agent-bd' && !dbConnected) || (agentId === 'agent-expensesauditor' && (!dbConnected || !docId))}
+              disabled={
+                inputValue.trim() === '' ||
+                (agentId === 'agent-bd' && !dbConnected) ||
+                (agentId === 'agent-expensesauditor' && (!dbConnected || !docId)) ||
+                (agentId === 'agent-web' && (!urlValue.trim() || !showUrlInput))
+              }
             >
               <Send className="w-4 h-4" color="white" />
             </button>
