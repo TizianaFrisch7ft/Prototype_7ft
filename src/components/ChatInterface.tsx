@@ -29,8 +29,8 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
   const [sources, setSources] = useState<string[]>([]);
   const [showSources, setShowSources] = useState(false);
   const [urlValue, setUrlValue] = useState('');
-  const [showUrlInput, setShowUrlInput] = useState(false);
   const [storedUrl, setStoredUrl] = useState<string | null>(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,7 +117,7 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
         });
       } else if (agentId === 'agent-web') {
         const currentUrl = storedUrl || urlValue;
-        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/web/ask`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/webpage/ask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: currentUrl, question: inputValue })
@@ -284,10 +284,10 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
   };
 
   // Nuevo: enviar la URL por separado
-  const handleSendUrl = async () => {
+  const handleSendUrl = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!urlValue.trim()) return;
     setStoredUrl(urlValue);
-    setShowUrlInput(false);
     setMessages(prev => [
       ...prev,
       {
@@ -297,6 +297,8 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
         timestamp: new Date()
       }
     ]);
+    setUrlValue('');
+    setShowUrlInput(false);
   };
 
   if (!open) return null;
@@ -349,111 +351,95 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
       </div>
 
       <div className="border-t border-neutral-200 p-4 bg-white rounded-b-2xl">
-        {/* URL input modal arriba del input principal */}
-        {agentId === 'agent-web' && showUrlInput && (
-          <div className="absolute bottom-28 right-0 left-0 mx-auto w-[90%] max-w-[380px] z-50 bg-white border border-primary-200 rounded-xl shadow-lg p-4 flex flex-col gap-2">
-            <label className="text-xs font-semibold text-primary-700 mb-1">Cargar URL para analizar</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={urlValue}
-                onChange={handleUrlChange}
-                placeholder="Ingrese la URL (ej: https://...)"
-                className="input-field flex-1"
-                autoFocus
-              />
-              <button
-                type="button"
-                className="p-2 rounded-full bg-primary-600 text-white hover:bg-primary-700 transition-colors"
-                onClick={handleSendUrl}
-                disabled={!urlValue.trim()}
-                title="Enviar URL"
-              >
-                <Send className="w-4 h-4" color="white" />
-              </button>
-            </div>
-            <button
-              type="button"
-              className="text-xs text-neutral-500 hover:underline mt-1 self-end"
-              onClick={() => setShowUrlInput(false)}
-            >
-              Cancelar
-            </button>
-          </div>
-        )}
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-2 relative">
-          {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor') && showDbForm && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 bg-neutral-100 p-4 rounded-xl border border-neutral-200 shadow-sm">
-              {agentId === 'agent-bd' && (
-                <select
-                  className="border border-neutral-300 rounded px-3 py-2 w-full"
-                  value={dbType}
-                  onChange={e => setDbType(e.target.value)}
-                >
-                  <option value="" disabled>Choose DB</option>
-                  <option value="mongodb">MongoDB</option>
-                  <option value="postgres">PostgreSQL</option>
-                  <option value="mysql">MySQL</option>
-                  <option value="sqlite">SQLite</option>
-                  <option value="azure">Azure SQL</option>
-                </select>
-              )}
-
-              <input
-                type="text"
-                placeholder="User"
-                className="border border-neutral-300 rounded px-3 py-2 w-full"
-                value={dbUser}
-                onChange={e => setDbUser(e.target.value)}
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                className="border border-neutral-300 rounded px-3 py-2 w-full"
-                value={dbPassword}
-                onChange={e => setDbPassword(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Cluster (e.g. cluster0.mongodb.net)"
-                className="border border-neutral-300 rounded px-3 py-2 w-full"
-                value={cluster}
-                onChange={e => setCluster(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="DB Name"
-                className="border border-neutral-300 rounded px-3 py-2 w-full"
-                value={dbName}
-                onChange={e => setDbName(e.target.value)}
-              />
-
-              <button
-                type="button"
-                className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 w-full"
-                onClick={handleDbConnect}
-              >
-                Connect
-              </button>
-            </div>
-          )}
-
-          {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor') && dbConnected && (
-            <div className="text-green-700 text-sm mb-2">
-              Connected to <b>{dbName}</b> as <b>{dbUser}</b>
-            </div>
-          )}
-
           <div className="flex gap-2 items-center">
-            {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor') && (
+            {agentId === 'agent-web' && (
               <button
                 type="button"
-                className="p-2 rounded-full hover:bg-neutral-200 transition-colors"
-                onClick={() => setShowDbForm(v => !v)}
+                className={`p-2 rounded-full hover:bg-neutral-200 transition-colors ${showUrlInput ? 'bg-primary-100' : ''}`}
+                onClick={() => setShowUrlInput(v => !v)}
+                title="Cargar URL"
                 tabIndex={-1}
               >
-                <Database className="w-5 h-5 text-primary-700" />
+                <LinkIcon className="w-5 h-5 text-primary-700" />
               </button>
+            )}
+            {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor') && (
+              <>
+                <button
+                  type="button"
+                  className="p-2 rounded-full hover:bg-neutral-200 transition-colors"
+                  onClick={() => setShowDbForm(v => !v)}
+                  tabIndex={-1}
+                >
+                  <Database className="w-5 h-5 text-primary-700" />
+                </button>
+                {showDbForm && (
+                  <div className="absolute bottom-28 right-0 left-0 mx-auto w-[90%] max-w-[380px] z-50 bg-white border border-primary-200 rounded-xl shadow-lg p-4 flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-primary-700 mb-1">Conectar a la base de datos</label>
+                    <form
+                      onSubmit={e => {
+                        e.preventDefault();
+                        handleDbConnect();
+                      }}
+                      className="flex flex-col gap-2"
+                    >
+                      {agentId === 'agent-bd' && (
+                        <input
+                          type="text"
+                          value={dbType}
+                          onChange={e => setDbType(e.target.value)}
+                          placeholder="Tipo de base de datos"
+                          className="input-field"
+                        />
+                      )}
+                      <input
+                        type="text"
+                        value={dbUser}
+                        onChange={e => setDbUser(e.target.value)}
+                        placeholder="Usuario"
+                        className="input-field"
+                      />
+                      <input
+                        type="password"
+                        value={dbPassword}
+                        onChange={e => setDbPassword(e.target.value)}
+                        placeholder="Contraseña"
+                        className="input-field"
+                      />
+                      <input
+                        type="text"
+                        value={dbName}
+                        onChange={e => setDbName(e.target.value)}
+                        placeholder="Nombre de la base de datos"
+                        className="input-field"
+                      />
+                      <input
+                        type="text"
+                        value={cluster}
+                        onChange={e => setCluster(e.target.value)}
+                        placeholder="Cluster"
+                        className="input-field"
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          className="text-xs text-neutral-500 hover:underline"
+                          onClick={() => setShowDbForm(false)}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="p-2 rounded-full bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+                        >
+                          Conectar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </>
             )}
             {(agentId === 'agent-documents' || agentId === 'agent-expensesauditor') && (
               <>
@@ -503,25 +489,8 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                 )}
               </div>
             )}
-            {/* Input extra para agent-web */}
-            {agentId === 'agent-web' && (
-              <>
-                <button
-                  type="button"
-                  className={`p-2 rounded-full hover:bg-neutral-200 transition-colors ${showUrlInput ? 'bg-primary-100' : ''}`}
-                  onClick={() => setShowUrlInput(v => !v)}
-                  title="Cargar URL"
-                  tabIndex={-1}
-                >
-                  <LinkIcon className="w-5 h-5 text-primary-700" />
-                </button>
-                {storedUrl && (
-                  <span className="text-xs text-primary-700 bg-primary-50 px-2 py-1 rounded ml-1 truncate max-w-[120px]" title={storedUrl}>
-                    {storedUrl}
-                  </span>
-                )}
-              </>
-            )}
+            {/* Elimina el botón de modal de URL para agent-web */}
+            {/* Input de mensaje */}
             <input
               type="text"
               value={inputValue}
@@ -530,7 +499,8 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
               className="input-field flex-1"
               disabled={
                 (agentId === 'agent-bd' && !dbConnected) ||
-                (agentId === 'agent-expensesauditor' && (!dbConnected || !docId))
+                (agentId === 'agent-expensesauditor' && (!dbConnected || !docId)) ||
+                (agentId === 'agent-web' && !storedUrl)
               }
             />
             <button
@@ -546,6 +516,41 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
               <Send className="w-4 h-4" color="white" />
             </button>
           </div>
+          {/* Modal de URL solo si showUrlInput */}
+          {agentId === 'agent-web' && showUrlInput && (
+            <div className="absolute bottom-28 right-0 left-0 mx-auto w-[90%] max-w-[380px] z-50 bg-white border border-primary-200 rounded-xl shadow-lg p-4 flex flex-col gap-2">
+              <label className="text-xs font-semibold text-primary-700 mb-1">Cargar URL para analizar</label>
+              <form onSubmit={handleSendUrl} className="flex gap-2">
+                <input
+                  type="text"
+                  value={urlValue}
+                  onChange={handleUrlChange}
+                  placeholder="Ingrese la URL (ej: https://...)"
+                  className="input-field flex-1"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="p-2 rounded-full bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+                  disabled={!urlValue.trim()}
+                  title="Enviar URL"
+                >
+                  <Send className="w-4 h-4" color="white" />
+                </button>
+              </form>
+              <button
+                type="button"
+                className="text-xs text-neutral-500 hover:underline mt-1 self-end"
+                onClick={() => setShowUrlInput(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          )}
+          {/* Connected debajo del input de mensaje */}
+          {agentId === 'agent-web' && storedUrl && (
+            <div className="text-green-700 text-xs mb-2 ml-1">Connected</div>
+          )}
         </form>
       </div>
     </div>
