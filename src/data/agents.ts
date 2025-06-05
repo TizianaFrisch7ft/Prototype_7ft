@@ -38,7 +38,7 @@ export const agents: AgentType[] = [
  },
  {
     id: 'agent-web',
-    name: 'Agent-web',
+    name: 'Agent-Web',
     description: 'Web automation and scraping agent',
     icon: 'Search',
     color: '#0ea5e9'
