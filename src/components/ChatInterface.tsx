@@ -30,6 +30,7 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
   const [showSources, setShowSources] = useState(false);
   const [urlValue, setUrlValue] = useState('');
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [storedUrl, setStoredUrl] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,19 +55,19 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() === '') return;
-    if (agentId === 'agent-web' && urlValue.trim() === '') return;
+    if (agentId === 'agent-web' && (urlValue.trim() === '' && !storedUrl)) return;
 
     const userMessage: ChatMessageType = {
       id: Date.now().toString(),
       content: agentId === 'agent-web'
-        ? `URL: ${urlValue}\nPregunta: ${inputValue}`
+        ? `URL: ${storedUrl || urlValue}\nPregunta: ${inputValue}`
         : inputValue,
       isUser: true,
       timestamp: new Date()
     };
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
-    if (agentId === 'agent-web') setUrlValue('');
+    if (agentId === 'agent-web' && !storedUrl) setUrlValue('');
 
     try {
       let res;
@@ -115,12 +116,15 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
           body: JSON.stringify({ question: inputValue })
         });
       } else if (agentId === 'agent-web') {
-        // Usa el endpoint /api/web/ask según tu backend
+        const currentUrl = storedUrl || urlValue;
         res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/web/ask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: urlValue, question: inputValue })
+          body: JSON.stringify({ url: currentUrl, question: inputValue })
         });
+        if (!storedUrl) {
+          setStoredUrl(urlValue); // guardo la URL para siguientes preguntas
+        }
       } else {
         throw new Error("Agente desconocido.");
       }
@@ -279,6 +283,22 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
     }
   };
 
+  // Nuevo: enviar la URL por separado
+  const handleSendUrl = async () => {
+    if (!urlValue.trim()) return;
+    setStoredUrl(urlValue);
+    setShowUrlInput(false);
+    setMessages(prev => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        content: `🌐 URL cargada: ${urlValue}`,
+        isUser: true,
+        timestamp: new Date()
+      }
+    ]);
+  };
+
   if (!open) return null;
 
   return (
@@ -329,7 +349,39 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
       </div>
 
       <div className="border-t border-neutral-200 p-4 bg-white rounded-b-2xl">
-        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-2">
+        {/* URL input modal arriba del input principal */}
+        {agentId === 'agent-web' && showUrlInput && (
+          <div className="absolute bottom-28 right-0 left-0 mx-auto w-[90%] max-w-[380px] z-50 bg-white border border-primary-200 rounded-xl shadow-lg p-4 flex flex-col gap-2">
+            <label className="text-xs font-semibold text-primary-700 mb-1">Cargar URL para analizar</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={urlValue}
+                onChange={handleUrlChange}
+                placeholder="Ingrese la URL (ej: https://...)"
+                className="input-field flex-1"
+                autoFocus
+              />
+              <button
+                type="button"
+                className="p-2 rounded-full bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+                onClick={handleSendUrl}
+                disabled={!urlValue.trim()}
+                title="Enviar URL"
+              >
+                <Send className="w-4 h-4" color="white" />
+              </button>
+            </div>
+            <button
+              type="button"
+              className="text-xs text-neutral-500 hover:underline mt-1 self-end"
+              onClick={() => setShowUrlInput(false)}
+            >
+              Cancelar
+            </button>
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-2 relative">
           {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor') && showDbForm && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 bg-neutral-100 p-4 rounded-xl border border-neutral-200 shadow-sm">
               {agentId === 'agent-bd' && (
@@ -463,16 +515,10 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                 >
                   <LinkIcon className="w-5 h-5 text-primary-700" />
                 </button>
-                {showUrlInput && (
-                  <input
-                    type="text"
-                    value={urlValue}
-                    onChange={handleUrlChange}
-                    placeholder="Ingrese la URL (ej: https://...)"
-                    className="input-field flex-1"
-                    required
-                    autoFocus
-                  />
+                {storedUrl && (
+                  <span className="text-xs text-primary-700 bg-primary-50 px-2 py-1 rounded ml-1 truncate max-w-[120px]" title={storedUrl}>
+                    {storedUrl}
+                  </span>
                 )}
               </>
             )}
@@ -494,7 +540,7 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                 inputValue.trim() === '' ||
                 (agentId === 'agent-bd' && !dbConnected) ||
                 (agentId === 'agent-expensesauditor' && (!dbConnected || !docId)) ||
-                (agentId === 'agent-web' && (!urlValue.trim() || !showUrlInput))
+                (agentId === 'agent-web' && !storedUrl)
               }
             >
               <Send className="w-4 h-4" color="white" />
