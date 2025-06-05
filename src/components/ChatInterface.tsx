@@ -297,7 +297,7 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
       },
       {
         id: (Date.now() + 1).toString(),
-        content: "🤖 URL DETECTED. You can now ask questions about this URL.",
+        content: `URL detectada. Ahora puedes hacer preguntas sobre ${urlValue}`,
         isUser: false,
         timestamp: new Date()
       }
