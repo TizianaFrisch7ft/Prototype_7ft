@@ -76,14 +76,14 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
           throw new Error("Primero tenés que subir un PDF.");
         }
 
-        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-pdf/ask-pdf`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-pdf/ask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ docId, question: inputValue })
         });
 
       } else if (agentId === 'agent-bd') {
-        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-db/ask-db`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-db/ask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: inputValue })
@@ -93,7 +93,7 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
         if (!docId) throw new Error("Primero tenés que subir un PDF de reglas.");
         if (!dbConnected) throw new Error("Primero tenés que conectarte a la base de datos.");
 
-        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-audit/audit`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-audit/ask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
