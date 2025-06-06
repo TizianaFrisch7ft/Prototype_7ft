@@ -6,6 +6,8 @@ interface Props {
   onClose: () => void;
 }
 
+const API_BASE = import.meta.env.VITE_BACKEND_BASE_URL;
+
 const PromptEditorBox: React.FC<Props> = ({ filename, onClose }) => {
   const [system, setSystem] = useState('');
   const [template, setTemplate] = useState('');
@@ -13,7 +15,7 @@ const PromptEditorBox: React.FC<Props> = ({ filename, onClose }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`/api/prompts/${filename}`)
+    axios.get(`${API_BASE}/api/prompts/${filename}`)
       .then(res => {
         const data = res.data as { system?: string; template?: string };
         setSystem(data.system || '');
@@ -28,7 +30,7 @@ const PromptEditorBox: React.FC<Props> = ({ filename, onClose }) => {
 
   const handleSave = async () => {
     try {
-      await axios.put(`/api/prompts/${filename}`, {
+      await axios.put(`${API_BASE}/api/prompts/${filename}`, {
         system,
         template
       });
