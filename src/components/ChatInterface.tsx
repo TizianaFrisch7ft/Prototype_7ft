@@ -116,7 +116,7 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
         });
       } else if (agentId === 'agent-web') {
         const currentUrl = storedUrl || urlValue;
-        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-web/webpage/ask`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-web/ask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: currentUrl, question: inputValue })
