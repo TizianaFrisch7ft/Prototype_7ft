@@ -109,14 +109,14 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
           body: JSON.stringify({ question: inputValue })
         });
       } else if (agentId === 'agent-vectorize') {
-        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/vector/ask`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-vectorize/ask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: inputValue })
         });
       } else if (agentId === 'agent-web') {
         const currentUrl = storedUrl || urlValue;
-        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/webpage/ask`, {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-web/webpage/ask`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: currentUrl, question: inputValue })
