@@ -12,6 +12,7 @@ import Pagina3 from '../images/Pagina3.png';
  import Pagina5 from '../images/Pagina5.png';
  import amplimas from '../images/aplimas.jpeg';
 import ChatInterface from './ChatInterface';
+import PromptEditorBox from './PromptEditorBox';
 
 const Navbar: React.FC = () => {
   const [currentCompany, setCurrentCompany] = useState<Company>(defaultCompany);
@@ -21,6 +22,9 @@ const Navbar: React.FC = () => {
   const [showArchAgentId, setShowArchAgentId] = useState<string | null>(null);
   const [showBackgroundMenu, setShowBackgroundMenu] = useState(false);
   const [openChats, setOpenChats] = useState<{ agentId: string, open: boolean }[]>([]);
+  const [promptEditorAgent, setPromptEditorAgent] = useState<string | null>(null);
+  // Guarda la posición top del botón ⋯ para alinear el box
+  const [promptBoxTop, setPromptBoxTop] = useState<number>(0);
   const location = useLocation();
 
   useEffect(() => {
@@ -86,6 +90,15 @@ const Navbar: React.FC = () => {
     'agent-expensesauditor': ['MongoDB', 'OpenAI', 'PDF-Parse', 'TypeScript', 'Node.js'],
   };
 
+  const handlePromptClick = (agentId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Encuentra la posición top del botón ⋯
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    setPromptBoxTop(rect.top + window.scrollY - 24); // Ajusta -24 para centrar mejor
+    setPromptEditorAgent(agentId);
+    setOpenMenuAgentId(null);
+  };
+
   const renderAgentMenu = (agentId: string) => {
     // Mostrar solo el box de arquitectura si corresponde
     if (openMenuAgentId === agentId && showArchAgentId === agentId) {
@@ -120,7 +133,12 @@ const Navbar: React.FC = () => {
           style={{ minWidth: 120 }}
           onClick={e => e.stopPropagation()}
         >
-          <button className="block w-full text-left px-4 py-1 hover:bg-neutral-100">Prompt</button>
+          <button
+            className="block w-full text-left px-4 py-1 hover:bg-neutral-100"
+            onClick={e => handlePromptClick(agentId, e)}
+          >
+            Prompt
+          </button>
           <button
             className="block w-full text-left px-4 py-1 hover:bg-neutral-100"
             onClick={e => {
@@ -439,6 +457,15 @@ const Navbar: React.FC = () => {
         }}
       />
     ))}
+    {/* Prompt Editor Modal */}
+    {promptEditorAgent && (
+      <div className="fixed left-[22rem] z-50" style={{ top: promptBoxTop }}>
+        <PromptEditorBox
+          filename={`${promptEditorAgent}.json`}
+          onClose={() => setPromptEditorAgent(null)}
+        />
+      </div>
+    )}
     </>
   );
 };
