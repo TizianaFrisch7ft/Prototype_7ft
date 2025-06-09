@@ -552,17 +552,6 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
               </button>
             </div>
           )}
-          {/* Mostrar PDFs seleccionados para agent-eam */}
-          {agentId === 'agent-eam' && pdfFiles.length > 0 && (
-            <div className="mt-2 text-xs text-neutral-700">
-              <b>PDFs cargados:</b>
-              <ul className="list-disc list-inside">
-                {pdfFiles.map((file, idx) => (
-                  <li key={idx}>{file.name}</li>
-                ))}
-              </ul>
-            </div>
-          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
