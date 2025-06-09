@@ -31,6 +31,15 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
   const [urlValue, setUrlValue] = useState('');
   const [storedUrl, setStoredUrl] = useState<string | null>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [pdfFiles, setPdfFiles] = useState<File[]>([]); // Para agent-eam: múltiples PDFs
+
+  // 👇 Estado y lista de máquinas para agent-eam
+  const [machineId, setMachineId] = useState('');
+  const [machines] = useState([
+    { _id: '1233', name: 'Torno hidráulico TH-2021' },
+    { _id: '4552', name: 'Fresadora FA-500' },
+    // ...agregá más máquinas si querés
+  ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -55,8 +64,9 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() === '') return;
-    // Solo bloquea el submit si NO hay storedUrl ni urlValue (para agent-web)
     if (agentId === 'agent-web' && !storedUrl) return;
+    // 👇 Para agent-eam, requiere machineId seleccionado
+    if (agentId === 'agent-eam' && !machineId) return;
 
     const userMessage: ChatMessageType = {
       id: Date.now().toString(),
@@ -66,8 +76,7 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
     };
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
-    // No limpies urlValue aquí, solo inputValue
-
+    
     try {
       let res;
 
@@ -124,6 +133,43 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
         if (!storedUrl) {
           setStoredUrl(urlValue); // guardo la URL para siguientes preguntas
         }
+      } else if (agentId === 'agent-eam') {
+        const formData = new FormData();
+        formData.append('query', inputValue);
+        formData.append('machineId', machineId); // Ahora dinámico
+        formData.append('dbCreds', JSON.stringify({
+          user: dbUser,
+          password: dbPassword,
+          dbName,
+          cluster
+        }));
+
+        // Adjuntar múltiples PDFs si hay
+        for (let i = 0; i < pdfFiles.length; i++) {
+          formData.append('pdfs', pdfFiles[i]);
+        }
+
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-eam/ask`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.videos && data.videos.length > 0) {
+          setSources(data.videos);
+          setShowSources(true);
+        }
+
+        const agentMessage: ChatMessageType = {
+          id: Date.now().toString(),
+          content: data.result || "🤖 No se pudo generar una respuesta.",
+          isUser: false,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, agentMessage]);
+        return; // Importante: salir para no ejecutar el resto del handler
       } else {
         throw new Error("Agente desconocido.");
       }
@@ -157,11 +203,12 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
   };
 
 
+  // Conexión a BD para agent-eam (igual que agent-bd)
   const handleDbConnect = async () => {
     setShowDbForm(false);
     try {
       let res;
-      if (agentId === 'agent-bd') {
+      if (agentId === 'agent-bd' || agentId === 'agent-eam') {
         res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-db/connect-db`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -217,68 +264,84 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
     }
   };
 
+  // Múltiples PDFs para agent-eam
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files && files.length > 0) {
-      const file = files[0];
+    if (!files || files.length === 0) return;
 
-      const formData = new FormData();
-      formData.append("file", file);
-
-      try {
-        let res, data;
-        if (agentId === 'agent-expensesauditor') {
-          res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-audit/upload-rules`, {
-            method: "POST",
-            body: formData
-          });
-          data = await res.json();
-          if (res.ok) {
-            setDocId(data.rulesId);
-            setMessages(prev => [
-              ...prev,
-              {
-                id: Date.now().toString(),
-                content: `📄 Archivo de reglas "${file.name}" cargado correctamente. Ahora podés hacer preguntas.`,
-                isUser: false,
-                timestamp: new Date()
-              }
-            ]);
-          } else {
-            throw new Error(data.error || "Error desconocido al subir PDF de reglas");
-          }
-        } else {
-          res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-pdf/upload-pdf`, {
-            method: "POST",
-            body: formData
-          });
-          data = await res.json();
-          if (res.ok) {
-            setDocId(data.docId);
-            setMessages(prev => [
-              ...prev,
-              {
-                id: Date.now().toString(),
-                content: `📄 Archivo "${file.name}" cargado correctamente. Ahora podés hacer preguntas.`,
-                isUser: false,
-                timestamp: new Date()
-              }
-            ]);
-          } else {
-            throw new Error(data.error || "Error desconocido al subir PDF");
-          }
+    if (agentId === 'agent-eam') {
+      // Guardar los archivos en el estado para enviar luego en el submit
+      setPdfFiles(Array.from(files));
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          content: `📄 ${files.length} archivo(s) PDF cargado(s) para consulta.`,
+          isUser: false,
+          timestamp: new Date()
         }
-      } catch (err) {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            content: `❌ Error al subir el archivo: ${err instanceof Error ? err.message : "desconocido"}`,
-            isUser: false,
-            timestamp: new Date()
-          }
-        ]);
+      ]);
+      return;
+    }
+
+    const file = files[0];
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      let res, data;
+      if (agentId === 'agent-expensesauditor') {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-audit/upload-rules`, {
+          method: "POST",
+          body: formData
+        });
+        data = await res.json();
+        if (res.ok) {
+          setDocId(data.rulesId);
+          setMessages(prev => [
+            ...prev,
+            {
+              id: Date.now().toString(),
+              content: `📄 Archivo de reglas "${file.name}" cargado correctamente. Ahora podés hacer preguntas.`,
+              isUser: false,
+              timestamp: new Date()
+            }
+          ]);
+        } else {
+          throw new Error(data.error || "Error desconocido al subir PDF de reglas");
+        }
+      } else {
+        res = await fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/agent-pdf/upload-pdf`, {
+          method: "POST",
+          body: formData
+        });
+        data = await res.json();
+        if (res.ok) {
+          setDocId(data.docId);
+          setMessages(prev => [
+            ...prev,
+            {
+              id: Date.now().toString(),
+              content: `📄 Archivo "${file.name}" cargado correctamente. Ahora podés hacer preguntas.`,
+              isUser: false,
+              timestamp: new Date()
+            }
+          ]);
+        } else {
+          throw new Error(data.error || "Error desconocido al subir PDF");
+        }
       }
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          content: `❌ Error al subir el archivo: ${err instanceof Error ? err.message : "desconocido"}`,
+          isUser: false,
+          timestamp: new Date()
+        }
+      ]);
     }
   };
 
@@ -363,15 +426,74 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
           {messages.map(message => (
             <ChatMessage key={message.id} message={message} />
           ))}
+          {/* 👇 Selector de máquina como mensaje del agente para agent-eam */}
+          {agentId === 'agent-eam' && (
+            <div className="mb-2">
+              <div className="bg-primary-50 border border-primary-100 rounded-lg px-4 py-3 text-sm text-primary-800 shadow-sm inline-block">
+                <div className="mb-1 font-semibold">Seleccioná una máquina:</div>
+                <select
+                  className="border border-neutral-300 rounded px-3 py-2 w-[220px] text-sm"
+                  value={machineId}
+                  onChange={e => setMachineId(e.target.value)}
+                  required
+                >
+                  <option value="">Seleccioná una máquina...</option>
+                  {machines.map(m => (
+                    <option key={m._id} value={m._id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+          {/* 👇 Videos de ayuda para agent-eam */}
+          {agentId === 'agent-eam' && sources.length > 0 && (
+            <div className="mt-2 space-y-2">
+              <div className="font-semibold text-sm text-primary-700 mb-1">Videos de ayuda:</div>
+              {sources.map((videoUrl, idx) => (
+                <div key={idx}>
+                  <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">
+                    Ver video {idx + 1}
+                  </a>
+                  {videoUrl.includes('youtube.com') && (
+                    <div className="mt-1">
+                      <iframe
+                        width="300"
+                        height="170"
+                        src={videoUrl.replace('watch?v=', 'embed/')}
+                        title={`Video ${idx + 1}`}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Mostrar PDFs seleccionados para agent-eam */}
+          {agentId === 'agent-eam' && pdfFiles.length > 0 && (
+            <div className="mt-2 text-xs text-neutral-700">
+              <b>PDFs cargados:</b>
+              <ul className="list-disc list-inside">
+                {pdfFiles.map((file, idx) => (
+                  <li key={idx}>{file.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
       <div className="border-t border-neutral-200 p-4 bg-white rounded-b-2xl">
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-2">
-          {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor') && showDbForm && (
+          {/* Formulario de conexión a BD para agent-eam */}
+          {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor' || agentId === 'agent-eam') && showDbForm && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 bg-neutral-100 p-4 rounded-xl border border-neutral-200 shadow-sm">
-              {agentId === 'agent-bd' && (
+              {(agentId === 'agent-bd' || agentId === 'agent-eam') && (
                 <select
                   className="border border-neutral-300 rounded px-3 py-2 w-full"
                   value={dbType}
@@ -425,14 +547,15 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
             </div>
           )}
 
-          {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor') && dbConnected && (
+          {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor' || agentId === 'agent-eam') && dbConnected && (
             <div className="text-green-700 text-sm mb-2">
               Connected to <b>{dbName}</b> as <b>{dbUser}</b>
             </div>
           )}
 
           <div className="flex gap-2 items-center">
-            {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor') && (
+            {/* ...NO poner el selector aquí... */}
+            {(agentId === 'agent-bd' || agentId === 'agent-expensesauditor' || agentId === 'agent-eam') && (
               <button
                 type="button"
                 className="p-2 rounded-full hover:bg-neutral-200 transition-colors"
@@ -453,7 +576,7 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                 <LinkIcon className="w-5 h-5 text-primary-700" />
               </button>
             )}
-            {(agentId === 'agent-documents' || agentId === 'agent-expensesauditor') && (
+            {(agentId === 'agent-documents' || agentId === 'agent-expensesauditor' || agentId === 'agent-eam') && (
               <>
                 <button
                   type="button"
@@ -468,6 +591,8 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                   ref={fileInputRef}
                   className="hidden"
                   onChange={handleFileUpload}
+                  multiple={agentId === 'agent-eam'}
+                  accept={agentId === 'agent-eam' ? '.pdf' : undefined}
                 />
               </>
             )}
@@ -512,7 +637,8 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
               disabled={
                 (agentId === 'agent-bd' && !dbConnected) ||
                 (agentId === 'agent-expensesauditor' && (!dbConnected || !docId)) ||
-                (agentId === 'agent-web' && !storedUrl)
+                (agentId === 'agent-web' && !storedUrl) ||
+                (agentId === 'agent-eam' && (!dbConnected || !machineId))
               }
             />
             <button
@@ -522,7 +648,8 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                 inputValue.trim() === '' ||
                 (agentId === 'agent-bd' && !dbConnected) ||
                 (agentId === 'agent-expensesauditor' && (!dbConnected || !docId)) ||
-                (agentId === 'agent-web' && !storedUrl)
+                (agentId === 'agent-web' && !storedUrl) ||
+                (agentId === 'agent-eam' && (!dbConnected || !machineId))
               }
             >
               <Send className="w-4 h-4" color="white" />
