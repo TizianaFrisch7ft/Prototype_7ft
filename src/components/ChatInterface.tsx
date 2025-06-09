@@ -380,7 +380,23 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
     // ...agrega más agentes si quieres...
   };
 
+  const [machineSelectorShown, setMachineSelectorShown] = useState(true);
+
+  // 👇 Mostrar el selector solo al inicio de la charla para agent-eam
+  useEffect(() => {
+    if (agentId === 'agent-eam') {
+      setMachineSelectorShown(true);
+      setMachineId('');
+    }
+    // eslint-disable-next-line
+  }, [agentId]);
+
   if (!open) return null;
+
+  const handleMachineSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setMachineId(e.target.value);
+    setMachineSelectorShown(false);
+  };
 
   return (
     <div
@@ -426,15 +442,15 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
           {messages.map(message => (
             <ChatMessage key={message.id} message={message} />
           ))}
-          {/* 👇 Selector de máquina como mensaje del agente para agent-eam */}
-          {agentId === 'agent-eam' && (
+          {/* 👇 Selector de máquina SOLO al inicio para agent-eam */}
+          {agentId === 'agent-eam' && machineSelectorShown && (
             <div className="mb-2">
               <div className="bg-primary-50 border border-primary-100 rounded-lg px-4 py-3 text-sm text-primary-800 shadow-sm inline-block">
                 <div className="mb-1 font-semibold">Seleccioná una máquina:</div>
                 <select
                   className="border border-neutral-300 rounded px-3 py-2 w-[220px] text-sm"
                   value={machineId}
-                  onChange={e => setMachineId(e.target.value)}
+                  onChange={handleMachineSelect}
                   required
                 >
                   <option value="">Seleccioná una máquina...</option>
