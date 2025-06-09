@@ -23,8 +23,14 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
   const [dbUser, setDbUser] = useState('tizianafrisch');
   const [dbPassword, setDbPassword] = useState('tizi7ft');
   const [dbConnected, setDbConnected] = useState(false);
-  const [cluster, setCluster] = useState('cluster0.deduats.mongodb.net');
-  const [dbName, setDbName] = useState(agentId === 'agent-expensesauditor' ? 'expenses' : 'agent_mongo');
+  const [cluster, setCluster] = useState('cluster0.deduats.mongodb.net'); 
+  const [dbName, setDbName] = useState(
+  agentId === 'agent-expensesauditor'
+    ? 'expenses'
+    : agentId === 'agent-eam'
+      ? 'maquinas'
+      : 'agent_mongo'
+);
   const [docId, setDocId] = useState<string | null>(null); // será rulesId para auditor
   const [sources, setSources] = useState<string[]>([]);
   const [showSources, setShowSources] = useState(false);
