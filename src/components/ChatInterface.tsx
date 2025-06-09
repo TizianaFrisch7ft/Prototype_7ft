@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage as ChatMessageType } from '../types';
 import ChatMessage from './ChatMessage';
 import { Send, Database, Upload, Link as LinkIcon, Layers, Search, Brain } from 'lucide-react';
+// Importa las rutas de los PDFs (como URLs públicas)
+import pdf1 from '../pdfs/LMS100_Caracteristicas_Tecnicas.pdf';
+import pdf2 from '../pdfs/LMS100_Resumen_Tecnico.pdf';
 
 interface ChatInterfaceProps {
   agentId: string;
@@ -37,13 +40,14 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
   const [urlValue, setUrlValue] = useState('');
   const [storedUrl, setStoredUrl] = useState<string | null>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
-  const [pdfFiles, setPdfFiles] = useState<File[]>([]); // Para agent-eam: múltiples PDFs
+  const [pdfFiles, setPdfFiles] = useState<File[]>([]);
+  const [showPdfPanel, setShowPdfPanel] = useState(false);
 
   // 👇 Estado y lista de máquinas para agent-eam
   const [machineId, setMachineId] = useState('');
   const [machines] = useState([
-    { _id: '1233', name: 'Torno hidráulico TH-2021' },
-    { _id: '4552', name: 'Fresadora FA-500' },
+    { _id: '1233', name: 'LMS100' },
+    { _id: '4552', name: 'LMS200' },
     // ...agregá más máquinas si querés
   ]);
 
@@ -404,6 +408,40 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
     setMachineSelectorShown(false);
   };
 
+  // Handler para cargar los PDFs reales como File usando fetch+blob
+  const handleConfirmPdfUpload = async () => {
+    try {
+      const [blob1, blob2] = await Promise.all([
+        fetch(pdf1).then(r => r.blob()),
+        fetch(pdf2).then(r => r.blob()),
+      ]);
+      const file1 = new File([blob1], "LMS100_Caracteristicas_Tecnicas.pdf", { type: "application/pdf" });
+      const file2 = new File([blob2], "LMS100_Resumen_Tecnico.pdf", { type: "application/pdf" });
+      setPdfFiles([file1, file2]);
+      setShowPdfPanel(false);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          content: `📄 2 archivos PDF cargados para consulta.`,
+          isUser: false,
+          timestamp: new Date()
+        }
+      ]);
+    } catch {
+      setShowPdfPanel(false);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          content: `❌ Error al cargar los archivos PDF.`,
+          isUser: false,
+          timestamp: new Date()
+        }
+      ]);
+    }
+  };
+
   return (
     <div
       // Cambia maxWidth y height para que nunca sea "grande"
@@ -493,6 +531,25 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                   )}
                 </div>
               ))}
+            </div>
+          )}
+          {/* Panel de PDFs para agent-eam */}
+          {agentId === 'agent-eam' && showPdfPanel && (
+            <div className="mb-3 bg-neutral-100 border border-neutral-300 rounded-xl px-4 py-3 flex items-center justify-between gap-4">
+              <div>
+                <div className="font-semibold text-primary-700 text-sm mb-1">Archivos PDF disponibles:</div>
+                <ul className="list-disc list-inside text-xs text-neutral-800">
+                  <li>LMS100_Caracteristicas_Tecnicas.pdf</li>
+                  <li>LMS100_Resumen_Tecnico.pdf</li>
+                </ul>
+              </div>
+              <button
+                type="button"
+                className="ml-4 px-4 py-2 rounded bg-primary-600 text-white hover:bg-primary-700 text-xs"
+                onClick={handleConfirmPdfUpload}
+              >
+                Confirmar
+              </button>
             </div>
           )}
           {/* Mostrar PDFs seleccionados para agent-eam */}
@@ -598,7 +655,7 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                 <LinkIcon className="w-5 h-5 text-primary-700" />
               </button>
             )}
-            {(agentId === 'agent-documents' || agentId === 'agent-expensesauditor' || agentId === 'agent-eam') && (
+            {(agentId === 'agent-documents' || agentId === 'agent-expensesauditor') && (
               <>
                 <button
                   type="button"
@@ -613,9 +670,21 @@ const ChatInterface: React.FC<ChatInterfaceProps & { style?: React.CSSProperties
                   ref={fileInputRef}
                   className="hidden"
                   onChange={handleFileUpload}
-                  multiple={agentId === 'agent-eam'}
-                  accept={agentId === 'agent-eam' ? '.pdf' : undefined}
+                  multiple={false}
                 />
+              </>
+            )}
+            {(agentId === 'agent-eam') && (
+              <>
+                <button
+                  type="button"
+                  className="p-2 rounded-full hover:bg-neutral-200 transition-colors"
+                  onClick={() => setShowPdfPanel(v => !v)}
+                  tabIndex={-1}
+                  title="Cargar PDFs por defecto"
+                >
+                  <Upload className="w-5 h-5 text-primary-700" />
+                </button>
               </>
             )}
             {agentId === 'agent-websearch' && sources.length > 0 && (

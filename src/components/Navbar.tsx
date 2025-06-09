@@ -93,8 +93,14 @@ const Navbar: React.FC = () => {
   const handlePromptClick = (agentId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     // Encuentra la posición top del botón ⋯
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    setPromptBoxTop(rect.top + window.scrollY - 24); // Ajusta -24 para centrar mejor
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    // Si está muy abajo, ajusta el top para que el modal no quede fuera de pantalla
+    let top = rect.top + window.scrollY - 24;
+    const minTop = 80; // px desde arriba
+    if (window.innerHeight - rect.bottom < 320) { // Si hay poco espacio abajo
+      top = Math.max(window.scrollY + minTop, window.innerHeight / 2 - 180 + window.scrollY);
+    }
+    setPromptBoxTop(top);
     setPromptEditorAgent(agentId);
     setOpenMenuAgentId(null);
   };
